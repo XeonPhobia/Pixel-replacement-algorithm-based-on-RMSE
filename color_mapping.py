@@ -41,6 +41,9 @@ if __name__=='__main__':
     filter_image = np.array(filter_image)
     print("zeroth",filter_image[0])
     print("first",filter_image[1])
+    filter_Array = {}
+    filter_Array = map(filter_image) 
+    print(replace_pixel, filter_Array)
     #print(filter_image[0])
 
     if False:
