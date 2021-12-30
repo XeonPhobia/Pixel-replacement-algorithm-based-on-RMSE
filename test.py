@@ -24,13 +24,19 @@ test_variable = np.array([[[ 81,  23,  22], [255, 201, 200]] , [[124,  66 , 65],
 #for key in range(test_variable):
 #    print(key, " verdi: ", test_variable[key])
 #output_array = np.array([], dtype=np.int8)
-output_array = np.zeros(shape=(2,2,1))
+output_array = np.zeros(shape=(len(test_variable),len(test_variable[0]),1))
 #output_array = map(calculate_RMSE,input_tensor, test_variable)
 #print(output_array)
 #variabel2 = map(calculate_RMSE(input_tensor,test_variable), test_variable)
+#a = 196609
 for x_direction in range(len(test_variable)):
     for y_direction in range(len(test_variable[x_direction])):
         #print(x_direction, y_direction, test_variable[x_direction][y_direction])
         output_array[x_direction][y_direction] = calculate_RMSE(input_tensor[0], test_variable[x_direction][y_direction])
 
+
 print(output_array)
+print(np.amin(output_array))
+result = np.where(output_array == np.amin(output_array))
+print(result[0])
+print(result[1])
