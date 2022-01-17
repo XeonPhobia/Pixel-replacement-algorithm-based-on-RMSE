@@ -7,9 +7,6 @@ import random
 
 def calculate_RMSE(input_tensor, comparison_array):
     input_array = np.array(input_tensor[0])   
-    #comparison_array = np.array(comparison_tensor[0])
-    #print(input_array)
-    #print(comparison_array)
     diff_array1 = (int(input_array[0]) - int(comparison_array[0]))**2 
     diff_array2 = (int(input_array[1]) - int(comparison_array[1]))**2 
     diff_array3 = (int(input_array[2]) - int(comparison_array[2]))**2      
@@ -17,26 +14,40 @@ def calculate_RMSE(input_tensor, comparison_array):
     diff_array = math.sqrt(diff_array)
     return diff_array
 
+
+
+def replace_pixel(input_tensor, test_variable):
+    output_array = np.zeros(shape=(len(test_variable),len(test_variable[0]),1))
+    for x_direction in range(len(test_variable)):
+        for y_direction in range(len(test_variable[x_direction])):
+            output_array[x_direction][y_direction] = calculate_RMSE(input_tensor[0], test_variable[x_direction][y_direction])
+    result = np.where(output_array == np.amin(output_array))
+    result = np.delete(result,2,0)
+    result = result.flatten()
+    return result
+
+def filter_nonzero(arr, k):
+    return arr[np.nonzero(k)]
+
 input_tensor = tf.constant([[[100, 110, 120]]], dtype=np.int8)
 test_variable = np.array([[[ 81,  23,  22], [255, 201, 200]] , [[124,  66 , 65], [155,  97,  96]]], dtype=np.int8)
-#print(input_tensor)
-#print(list(test_variable))
-#for key in range(test_variable):
-#    print(key, " verdi: ", test_variable[key])
-#output_array = np.array([], dtype=np.int8)
-output_array = np.zeros(shape=(len(test_variable),len(test_variable[0]),1))
-#output_array = map(calculate_RMSE,input_tensor, test_variable)
-#print(output_array)
-#variabel2 = map(calculate_RMSE(input_tensor,test_variable), test_variable)
-#a = 196609
-for x_direction in range(len(test_variable)):
-    for y_direction in range(len(test_variable[x_direction])):
-        #print(x_direction, y_direction, test_variable[x_direction][y_direction])
-        output_array[x_direction][y_direction] = calculate_RMSE(input_tensor[0], test_variable[x_direction][y_direction])
 
+mask = np.ones((len(test_variable),len(test_variable[0]),1), dtype=np.bool_)
+result_Array = np.zeros((len(test_variable),len(test_variable[0]),3), dtype=np.int8)
 
-print(output_array)
-print(np.amin(output_array))
-result = np.where(output_array == np.amin(output_array))
-print(result[0])
-print(result[1])
+length_filter_image = tf.Tensor.get_shape(input_tensor).as_list()
+#print(length_filter_image)
+for x_direction in range(length_filter_image[0]):
+    for y_direction in range(length_filter_image[1]):
+        #print(x_direction, y_direction)
+        result = replace_pixel(input_tensor, test_variable)
+        #print(f"result is {result}")
+        mask[result[0]][result[1]] = False
+        result_Array[x_direction][y_direction] = test_variable[result[0]][result[1]]
+
+#print(result_Array)
+print(mask)
+print("tekst")
+print(test_variable)
+print(filter_nonzero(test_variable, mask))
+#print(test_variable[:,mask])
