@@ -5,9 +5,8 @@ import math
 from tensorflow.python.keras.backend import variable
 import random
 
-def calculate_RMSE(input_tensor, comparison_tensor):
+def calculate_RMSE(input_tensor, comparison_array):
     input_array = np.array(input_tensor[0])   
-    comparison_array = np.array(comparison_tensor[0])
     diff_array1 = (int(input_array[0]) - int(comparison_array[0]))**2 
     diff_array2 = (int(input_array[1]) - int(comparison_array[1]))**2 
     diff_array3 = (int(input_array[2]) - int(comparison_array[2]))**2      
@@ -15,35 +14,44 @@ def calculate_RMSE(input_tensor, comparison_tensor):
     diff_array = math.sqrt(diff_array)
     return diff_array
 
-def replace_pixel(source_image, filter_image, source_pixel, koblingstabell_dictionary):
-    temp_dictionary = {}
-    length_filter_image = tf.Tensor.get_shape(filter_image).as_list()
-    length_filter_image = length_filter_image[0]
-    for key in range(length_filter_image):
-        temp_dictionary[key] = calculate_RMSE(source_image[source_pixel], filter_image[key])
-    for key2 in koblingstabell_dictionary: 
-        temp_dictionary.pop(koblingstabell_dictionary[key2])
-    best_fit = min(temp_dictionary, key=temp_dictionary.get)
-    return best_fit
+def replace_pixel(input_tensor, test_variable):
+    output_array = np.zeros(shape=(len(test_variable),1))
+    for key in range(len(test_variable)):
+        output_array[key] = calculate_RMSE(input_tensor, test_variable[key])
+    result = np.where(output_array == np.amin(output_array))
+    return test_variable.pop(result[0][0])
+
 
 
 
 if __name__=='__main__':
-    source_img_path = "C:\\VisualStudioCode\\Project2\\redblue.jpg"
-    filter_img_path = "C:\\VisualStudioCode\\Project2\\Burgunder gul blå rosa.jpg"
+    source_img_path = "C:\\VisualStudioCode\\Project3\\juanitocd01_02.jpg"
+    filter_img_path = "C:\\VisualStudioCode\\Project3\\Julius_105.jpg"
     source_image=tf.io.read_file(source_img_path)
     filter_image=tf.io.read_file(filter_img_path)
     source_image=tf.image.decode_jpeg(source_image, channels=3)
     filter_image=tf.image.decode_jpeg(filter_image, channels=3)
-    koblingstabell_dictionary = {}
+    #koblingstabell_dictionary = {}
+    filter_image = filter_image.numpy()
+    filter_image = filter_image.reshape(len(filter_image) * len(filter_image[0]) ,3)
+    filter_image = filter_image.tolist()
+    result_Array = np.zeros((len(source_image),len(source_image[0]),3), dtype=np.uint8)
+    #result_Array, filter_image, source_image
+    
+    result_Array[0] = replace_pixel(source_image[0], filter_image)
+    result_Array[1] = replace_pixel(source_image[1], filter_image)
+
+    print(result_Array)
+    #print(filter_image)
+
     #koblingstabell_dictionary[0] = replace_pixel(source_image, filter_image, 0, koblingstabell_dictionary)  
     #koblingstabell_dictionary[1] = replace_pixel(source_image, filter_image, 1, koblingstabell_dictionary)
-    filter_image = np.array(filter_image)
-    print("zeroth",filter_image[0])
-    print("first",filter_image[1])
-    filter_Array = {}
-    filter_Array = map(filter_image) 
-    print(replace_pixel, filter_Array)
+    #filter_image = np.array(filter_image)
+    #print("zeroth",filter_image[0])
+    #print("first",filter_image[1])
+    #filter_Array = {}
+    #filter_Array = map(filter_image) 
+    #print(replace_pixel, filter_Array)
     #print(filter_image[0])
 
     if False:
