@@ -4,6 +4,21 @@ import matplotlib.pyplot as plt
 import math
 from tensorflow.python.keras.backend import variable
 import random
+from joblib import Parallel, delayed
+
+def pre_processing(source_image, filter_image):
+    denominator = len(filter_image) * len(filter_image[0])
+    terminator = len(source_image) * len(source_image[0])
+    scaling = denominator / terminator
+    print(f"scaling: {scaling}")
+    if scaling < 1.02:
+        print(f"scaling: {scaling}")
+        a = len(source_image) * 1.05
+        b = len(source_image[0]) * 1.05
+        a = math.ceil(a)
+        b = math.ceil(b)
+        filter_image = tf.image.resize(filter_image, [a,b])
+    return filter_image
 
 def calculate_RMSE(input_tensor, comparison_array):
     input_array = np.array(input_tensor)   
@@ -16,64 +31,41 @@ def calculate_RMSE(input_tensor, comparison_array):
 
 def replace_pixel(input_tensor, test_variable):
     output_array = np.zeros(shape=(len(test_variable),1))
-    for key in range(len(test_variable)):
-        output_array[key] = calculate_RMSE(input_tensor, test_variable[key])
+    for key, key_value in enumerate(test_variable):
+        output_array[key] = calculate_RMSE(input_tensor, key_value)
     result = np.where(output_array == np.amin(output_array))
     return test_variable.pop(result[0][0])
 
-
-
-
 if __name__=='__main__':
-    source_img_path = "C:\\VisualStudioCode\\Project2\\juanitocd_lower_res.jpg"
+    source_img_path = "C:\\VisualStudioCode\\Project2\\juanitocd01_150_225.jpg"
     filter_img_path = "C:\\VisualStudioCode\\Project2\\Julius_low_res.jpg"
     source_image=tf.io.read_file(source_img_path)
     filter_image=tf.io.read_file(filter_img_path)
     source_image=tf.image.decode_jpeg(source_image, channels=3)
     filter_image=tf.image.decode_jpeg(filter_image, channels=3)
     #koblingstabell_dictionary = {}
+    filter_image = pre_processing(source_image, filter_image)
     filter_image = filter_image.numpy()
+    
     filter_image = filter_image.reshape(len(filter_image) * len(filter_image[0]) ,3)
     filter_image = filter_image.tolist()
     result_Array = np.zeros((len(source_image),len(source_image[0]),3), dtype=np.uint8)
     #result_Array, filter_image, source_image
-    
     print(f"result:array dimensions:{len(result_Array), len(result_Array[0])}")
-    #print(source_image.get_shape())
-    #print(source_image[0][0])
+    print(f"filter:array dimensions:{len(filter_image)}")
 
-    result_Array[0][0] = replace_pixel(source_image[0][0], filter_image)
-    result_Array[1][0] = replace_pixel(source_image[1][0], filter_image)
+    for key, key_value in enumerate(result_Array):
+        print(f"key:{key}")
+        for key2, key_value2 in enumerate(key_value):
+            key_value[key2] = replace_pixel(source_image[key][key2], filter_image)
 
-    print(result_Array)
+    output_image = tf.convert_to_tensor(result_Array, dtype='uint8')
+    output_img=tf.image.encode_jpeg(output_image)
     #print(filter_image)git
 
-    #koblingstabell_dictionary[0] = replace_pixel(source_image, filter_image, 0, koblingstabell_dictionary)  
-    #koblingstabell_dictionary[1] = replace_pixel(source_image, filter_image, 1, koblingstabell_dictionary)
-    #filter_image = np.array(filter_image)
-    #print("zeroth",filter_image[0])
-    #print("first",filter_image[1])
-    #filter_Array = {}
-    #filter_Array = map(filter_image) 
-    #print(replace_pixel, filter_Array)
-    #print(filter_image[0])
+    tf.io.write_file("C:\\VisualStudioCode\\Project2\\remade_image_low_resolution.jpg", output_img)
+    #source_image=tf.image.convert_image_dtype(source_image, dtype=tf.float32) 
+    imgplot = plt.imshow(output_image)
+    plt.show()
 
-    if False:
-        #print(fit_dictionary[0], fit_dictionary[100])
-        print(fit_dictionary.get(0))
-        print(fit_dictionary.get(1))
-        print(min(fit_dictionary, key=fit_dictionary.get)) #finn filter_image posisjonen/pixelet som er likest. 
-        print(filter_image[min(fit_dictionary, key=fit_dictionary.get)])
-        #source_image[0] = filter_image[min(fit_dictionary, key=fit_dictionary.get)]
-        print("New source image with one pixel from filter image is:")
-        print(source_image)
-        output_image = tf.convert_to_tensor(filter_image[min(fit_dictionary, key=fit_dictionary.get)], dtype='uint8')
-        #print(output_image)
-        #if False:
-        output_image = tf.reshape(output_image, [1, 1, 3])
-        #print(a)
-        output_img=tf.image.encode_jpeg(output_image)
-        #tf.io.write_file("C:\\VisualStudioCode\\Project2\\ooutputredblue.jpg", output_img)
-        source_image=tf.image.convert_image_dtype(source_image, dtype=tf.float32) 
-        imgplot = plt.imshow(output_image)
-        plt.show()
+   
