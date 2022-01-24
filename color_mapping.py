@@ -6,7 +6,7 @@ from tensorflow.python.keras.backend import variable
 import random
 
 def calculate_RMSE(input_tensor, comparison_array):
-    input_array = np.array(input_tensor[0])   
+    input_array = np.array(input_tensor)   
     diff_array1 = (int(input_array[0]) - int(comparison_array[0]))**2 
     diff_array2 = (int(input_array[1]) - int(comparison_array[1]))**2 
     diff_array3 = (int(input_array[2]) - int(comparison_array[2]))**2      
@@ -25,8 +25,8 @@ def replace_pixel(input_tensor, test_variable):
 
 
 if __name__=='__main__':
-    source_img_path = "C:\\VisualStudioCode\\Project3\\juanitocd01_02.jpg"
-    filter_img_path = "C:\\VisualStudioCode\\Project3\\Julius_105.jpg"
+    source_img_path = "C:\\VisualStudioCode\\Project2\\juanitocd_lower_res.jpg"
+    filter_img_path = "C:\\VisualStudioCode\\Project2\\Julius_low_res.jpg"
     source_image=tf.io.read_file(source_img_path)
     filter_image=tf.io.read_file(filter_img_path)
     source_image=tf.image.decode_jpeg(source_image, channels=3)
@@ -38,11 +38,15 @@ if __name__=='__main__':
     result_Array = np.zeros((len(source_image),len(source_image[0]),3), dtype=np.uint8)
     #result_Array, filter_image, source_image
     
-    result_Array[0] = replace_pixel(source_image[0], filter_image)
-    result_Array[1] = replace_pixel(source_image[1], filter_image)
+    print(f"result:array dimensions:{len(result_Array), len(result_Array[0])}")
+    #print(source_image.get_shape())
+    #print(source_image[0][0])
+
+    result_Array[0][0] = replace_pixel(source_image[0][0], filter_image)
+    result_Array[1][0] = replace_pixel(source_image[1][0], filter_image)
 
     print(result_Array)
-    #print(filter_image)
+    #print(filter_image)git
 
     #koblingstabell_dictionary[0] = replace_pixel(source_image, filter_image, 0, koblingstabell_dictionary)  
     #koblingstabell_dictionary[1] = replace_pixel(source_image, filter_image, 1, koblingstabell_dictionary)
