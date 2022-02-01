@@ -55,6 +55,7 @@ if __name__=='__main__':
     #filter_image = filter_image.tolist()
     result_array = np.zeros((len(source_image),len(source_image[0]),3), dtype=np.uint8)
     source_image = np.array(source_image) 
+<<<<<<< HEAD
 
     input_list = numba.typed.List()
     for x_direction, key_value in enumerate(source_image):
@@ -107,28 +108,42 @@ if False:
     filter_list = numba.typed.List()
 
 
+=======
+>>>>>>> 2a4eb2669b877af1fd8cef569e6ee2f0cc98026c
 
-    #result_Array, filter_image, source_image
-    print(f"result:array dimensions:{len(result_Array[0]) * len(result_Array)}")
-    print(f"filter:array dimensions:{len(filter_image)}")
+    input_list = numba.typed.List()
+    for x_direction, key_value in enumerate(source_image):
+        for y_direction, key_value2 in enumerate(key_value):
+            #print(f"key:{key} value: {key_value}")
+            tmp_array = np.array([x_direction, y_direction, key_value2[0], key_value2[1], key_value2[2]], dtype=int)
+            input_list.append(tmp_array)
 
+    filter_list = numba.typed.List()
+    for x_direction, key_value in enumerate(filter_image):
+        filter_list.append(key_value)
+    
+    for key, filter_list_key in enumerate(filter_list):
+        #print(f"key is: {key}")
+        #key = 0
+        output_value = replace_pixel(input_list, filter_list_key)
+        #print(input_list[output_value])
+        x = input_list[output_value][0]
+        y = input_list[output_value][1]
+        result_array[x][y] = filter_list_key
+        #print(input_list[output_value][0], )
+        #print(input_list[output_value])
+        #print(filter_list[key])
+        input_list.pop(output_value)
+        print(len(input_list))
+        if len(input_list) == 0:
+            break
+        
+        #filter_list.pop(key)
+    
+    #print(f"result_list is: {result_array[28]}")
 
-    for key, key_value in sorted(enumerate(result_Array),key=lambda _: random.random()):
-        print(f"key:{key}")
-        for key2, key_value2 in sorted(enumerate(key_value),key=lambda _: random.random()):
-            key_value[key2] = replace_pixel(source_image[key][key2], filter_image)
-
-    # for key, key_value in enumerate(result_Array):
-    #     print(f"key:{key}")
-    #     for key2, key_value2 in enumerate(key_value):
-    #         key_value[key2] = replace_pixel(source_image[key][key2], filter_image)
-
-
-
-    output_image = tf.convert_to_tensor(result_Array, dtype='uint8')
+    output_image = tf.convert_to_tensor(result_array, dtype='uint8')
     output_img=tf.image.encode_jpeg(output_image)
-    tf.io.write_file("C:\\VisualStudioCode\\Project2\\remade_image_low_resolution.jpg", output_img)
+    tf.io.write_file("C:\\VisualStudioCode\\Project3\\remade_image_low_resolution.jpg", output_img)
     imgplot = plt.imshow(output_image)
     plt.show()
-
-   
