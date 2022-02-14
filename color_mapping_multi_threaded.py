@@ -12,8 +12,9 @@ def pre_processing(source_image, filter_image):
     denominator = len(filter_image) * len(filter_image[0])
     terminator = len(source_image) * len(source_image[0])
     scaling = denominator / terminator
+    print(f"scaling: {scaling}")
     if scaling < 1.1:
-        print(f"scaling up filter_image from: {scaling}")
+        print(f"scaling: {scaling}")
         a = len(source_image) * 1.1
         b = len(source_image[0]) * 1.1
         a = math.ceil(a)
@@ -21,31 +22,9 @@ def pre_processing(source_image, filter_image):
         filter_image = tf.image.resize(filter_image, [a,b])
     return filter_image
 
-def score(source_array, target_array):
-    output_array = np.zeros((len(source_array),len(source_array[0]),1), dtype=np.uint8)
-    score = 0
-    for x in range(len(source_array)):
-        for y in range(len(source_array[0])):
-            output_array[x][y] = calculate_RMSE(source_array[x][y], target_array[x][y])
-            score += int(output_array[x][y])
-    output_image = tf.convert_to_tensor(output_array, dtype='uint8')
-    output_img=tf.image.encode_jpeg(output_image, format='grayscale')
-    tf.io.write_file("C:\\VisualStudioCode\\Project3\\error_map.jpg", output_img)
-    print(f"score is: {score}")
-    return score
-
-def calculate_RMSE(input_array, comparison_array):
-    diff_array1 = (int(input_array[0]) - int(comparison_array[0]))**2 
-    diff_array2 = (int(input_array[1]) - int(comparison_array[1]))**2 
-    diff_array3 = (int(input_array[2]) - int(comparison_array[2]))**2      
-    diff_array = diff_array1 + diff_array2 + diff_array3 
-    diff_array = math.sqrt(diff_array)
-    return diff_array
-
-#def exchange_pixels():
 
 
-@njit(parallel=True)
+@njit(nopython=True, parallel=True)
 def for_loop_replace_pixel(output_array, input_list, filter_1D_array):
     filter_1D_array_0 = int(filter_1D_array[0])
     filter_1D_array_1 = int(filter_1D_array[1])
@@ -55,12 +34,12 @@ def for_loop_replace_pixel(output_array, input_list, filter_1D_array):
         diff_array1 = (int(key_value[2]) - filter_1D_array_0)**2 
         diff_array2 = (int(key_value[3]) - filter_1D_array_1)**2 
         diff_array3 = (int(key_value[4]) - filter_1D_array_2)**2      
-        output_array[key] = (diff_array1 + diff_array2 + diff_array3)**.5
+        output_array[key] = math.sqrt(diff_array1 + diff_array2 + diff_array3)
     return output_array
 
 def main():
     source_img_path = "C:\\VisualStudioCode\\Project3\\juanitocd170_225.jpg"
-    filter_img_path = "C:\\VisualStudioCode\\Project3\\juanitocd01_200_300.jpg"
+    filter_img_path = "C:\\VisualStudioCode\\Project3\\Flo_75_112.jpg"
     source_image=tf.io.read_file(source_img_path)
     filter_image=tf.io.read_file(filter_img_path)
     source_image=tf.image.decode_jpeg(source_image, channels=3)
@@ -71,8 +50,6 @@ def main():
     filter_image = filter_image.reshape(len(filter_image) * len(filter_image[0]) ,3)
     result_array = np.zeros((len(source_image),len(source_image[0]),3), dtype=np.uint8)
     source_image = np.array(source_image) 
-    #array in order to create a score. 
-    source_comparison_image = source_image
 
     input_list = numba.typed.List()
     for x_direction, key_value in enumerate(source_image):
@@ -96,28 +73,26 @@ def main():
         y = input_list[output_value][1]
         result_array[x][y] = filter_list_key
         input_list.pop(output_value)
-        if len(input_list) % 10000 == 0:
+        if len(input_list) % 1000 == 0:
             print(len(input_list))
         if len(input_list) == 0:
             break
         
-
-    score(source_comparison_image, result_array)
-    print(f"length of remainding filter list is: {len(filter_list)}")
-
-
+        #filter_list.pop(key)
+    
+    #print(f"result_list is: {result_array[28]}")
 
     output_image = tf.convert_to_tensor(result_array, dtype='uint8')
-    output_img=tf.image.encode_jpeg(output_image, chroma_downsampling=False)
+    output_img=tf.image.encode_jpeg(output_image)
     tf.io.write_file("C:\\VisualStudioCode\\Project3\\remade_image_low_resolution.jpg", output_img)
     #imgplot = plt.imshow(output_image)
     #plt.show()
 
 if __name__=='__main__':
-    start = timeit.default_timer()
+    #start = timeit.default_timer()
     main()
-    stop = timeit.default_timer()
-    print('Time: ', stop - start) 
+    #stop = timeit.default_timer()
+    #print('Time: ', stop - start) 
     
     # import cProfile, pstats
     # profiler = cProfile.Profile()
