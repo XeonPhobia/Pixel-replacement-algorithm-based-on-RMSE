@@ -1,12 +1,8 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
-from numba import jit
-import numba
 import numpy as np
-import math
 import tensorflow as tf
-
 
 def calculate_RMSE():
     rmse_difference = tf.math.subtract(input_tensor, filter_tensor)
@@ -15,8 +11,6 @@ def calculate_RMSE():
     rmse_difference = tf.cast(rmse_difference, dtype=np.float32)
     rmse_difference = tf.math.sqrt(rmse_difference)
     return tf.reduce_sum(rmse_difference)
-
-
 
 if __name__=='__main__':
     #Convert two .jpg images to tensors with R G B values between 0 and 255:
@@ -34,6 +28,5 @@ if __name__=='__main__':
 
     # I would like to write an optimizer in tensorflow that reorders [R, G, B] array in filter_tensor variable.
     # The goal is to get total_Score to be as small as possible. 
-
 
     print(total_Score)
