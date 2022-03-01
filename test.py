@@ -14,12 +14,14 @@ def calculate_RMSE():
     return tmp_variable
 
 def swap_two_indices(var1, var2, score, filter_tensor):
+    var1 = tf.cast(var1, tf.uint8)
+    var2 = tf.cast(var2, tf.uint8)
     indices[var1[0]][var1[1]], indices[var2[0]][var2[1]] = indices[var2[0]][var2[1]], indices[var1[0]][var1[1]]
     filter_tensor_temp = tf.scatter_nd(indices, filter_tensor, filter_tensor.shape)
     if calculate_RMSE() < score:
         filter_tensor = filter_tensor_temp
         score = calculate_RMSE()
-    return score
+    return score, filter_tensor
 
 if __name__=='__main__':
     #Convert two .jpg images to tensors with R G B values between 0 and 255:
@@ -33,8 +35,10 @@ if __name__=='__main__':
     #indices = tf.Variable(indices, dtype=np.int32)
 
     rmse_difference = tf.zeros([input_tensor.shape[0], input_tensor.shape[1], 3], dtype=np.float32)
-    var1 = tf.Variable([0, 0], dtype=np.uint8)
-    var2 = tf.Variable([1, 0], dtype=np.uint8)
+    # var1 = tf.Variable([0, 0], dtype=np.uint8)
+    # var2 = tf.Variable([1, 0], dtype=np.uint8)
+    var1 = tf.Variable([0, 0], dtype=np.float32)
+    var2 = tf.Variable([1, 0], dtype=np.float32)
     score = calculate_RMSE()
     y = score
 
@@ -47,11 +51,12 @@ if __name__=='__main__':
     # tf.constant([[[1, 0],[0.0]],[[1, 0],[1, 1]]]), calculate_RMSE() = 655.2762
     # tf.constant([[[0, 1],[0.0]],[[1, 0],[1, 1]]]), calculate_RMSE() = 674.356
 
-    with tf.GradientTape() as tape:
+    with tf.GradientTape(persistent=True) as tape:
         # tensorflow gradientTape sources 
         # var1 only whole numbers between 0 and filter_tensor.shape[0]
         # var2 only whole numbers between 0 and filter_tensor.shape[1]
-        y = swap_two_indices(var1, var2, score, filter_tensor)
+        y, filter_tensor = swap_two_indices(var1, var2, score, filter_tensor)
 
-        dy_dswap_two_indices = tape.gradient(y, [var1, var2])
+    dy_dswap_two_indices = tape.gradient(y, [var1, var2])
+
     print(dy_dswap_two_indices)
